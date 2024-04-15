@@ -80,19 +80,24 @@ void a_free() {
   a->next = NULL;
 }
 
-void ir_init(ir_state *state) { ir_slice_init(&state->symbol_table); }
+void ir_init(ir_context *context) { ir_slice_init(&context->symbol_table); }
 
-symbol_index ir_find_or_add_symbol(ir_state *state, cstr symbol) {
+symbol_index ir_find_or_add_symbol(ir_context *context, cstr symbol) {
+  symbol_index index = ir_find_symbol(context, symbol);
+  if (index == SIZE_MAX) {
+    ir_slice_push(&context->symbol_table, symbol);
+    index = context->symbol_table.size - 1;
+  }
+  return index;
+}
+
+symbol_index ir_find_symbol(ir_context *context, cstr symbol) {
   symbol_index index = SIZE_MAX;
-  for (size_t i = 0; i < state->symbol_table.size; i++) {
-    cstr found_symbol = state->symbol_table.items[i];
+  for (size_t i = 0; i < context->symbol_table.size; i++) {
+    cstr found_symbol = context->symbol_table.items[i];
     if (strncmp(symbol, found_symbol, strlen(symbol)) == 0) {
       index = i;
     }
-  }
-  if (index == SIZE_MAX) {
-    ir_slice_push(&state->symbol_table, symbol);
-    index = state->symbol_table.size - 1;
   }
   return index;
 }

@@ -77,25 +77,78 @@ typedef const char *cstr;
 typedef ir_slice(cstr) cstr_slice;
 typedef size_t symbol_index;
 
+typedef enum {
+  _IR_TYPE_WORD,
+  _IR_TYPE_POINTER,
+} ir_type_tag;
+typedef struct ir_type {
+  ir_type_tag tag;
+  union {
+    struct ir_type *ptr;
+  };
+} ir_type;
+#define IR_TYPE_WORD ((ir_type){_IR_TYPE_WORD})
+#define IR_TYPE_POINTER(T) ((ir_type){.tag = _IR_TYPE_POINTER, .ptr = (&(T))})
+
+typedef enum {
+  _IR_VALUE_INTEGER,
+} ir_value_tag;
 typedef struct {
+  ir_value_tag tag;
+  ir_type type;
+  union {
+    int64_t integer;
+  };
+} ir_value;
+#define IR_VALUE_INTEGER(T, V)                                                 \
+  ((ir_value){.tag = _IR_VALUE_INTEGER, .type = (T), .integer = (V)})
+
+typedef enum {
+#define INST_RET(id, ...) _IR_INSTRUCTION_##id,
+#define INST_NORET(id, ...) _IR_INSTRUCTION_##id,
+#include "instructions.inc"
+#undef INST_RET
+#undef INST_NORET
+} ir_instruction_tag;
+typedef struct {
+  ir_instruction_tag tag;
+  union {
+#define INST_RET(id, ...)                                                      \
+  struct {                                                                     \
+    size_t index;                                                              \
+    __VA_ARGS__                                                                \
+  } id;
+#define INST_NORET(id, ...)                                                    \
+  struct {                                                                     \
+    __VA_ARGS__                                                                \
+  } id;
+#include "instructions.inc"
+#undef INST_RET
+#undef INST_NORET
+  };
 } ir_instruction;
 typedef ir_slice(ir_instruction) ir_instruction_slice;
 
 typedef struct {
-  cstr name;
+  symbol_index name_index;
   ir_instruction_slice instructions;
 } ir_block;
 typedef ir_slice(ir_block) ir_block_slice;
 
 typedef struct {
+  ir_type return_type;
+  symbol_index name_index;
+  // TODO: parameters
   ir_block_slice blocks;
 } ir_function;
 
 typedef struct {
   cstr_slice symbol_table;
-} ir_state;
+} ir_context;
 
-void ir_init(ir_state *);
-symbol_index ir_find_or_add_symbol(ir_state *, cstr);
+void ir_init(ir_context *);
+symbol_index ir_find_or_add_symbol(ir_context *, cstr);
+/// Returns SIZE_MAX if symbol wasn't found.
+symbol_index ir_find_symbol(ir_context *, cstr);
 
 #endif // IR_H

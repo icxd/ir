@@ -3,16 +3,16 @@
 
 int main(void) {
   a_init(64 * 1024);
-  ir_state state;
-  ir_init(&state);
+  ir_context context;
+  ir_init(&context);
 
-  symbol_index index = ir_find_or_add_symbol(&state, "test");
+  symbol_index index = ir_find_or_add_symbol(&context, "test");
   printf("%zu\n", index);
 
-  index = ir_find_or_add_symbol(&state, "test");
+  index = ir_find_or_add_symbol(&context, "test");
   printf("%zu\n", index);
 
-  index = ir_find_or_add_symbol(&state, "test2");
+  index = ir_find_or_add_symbol(&context, "test2");
   printf("%zu\n", index);
 
   return 0;
