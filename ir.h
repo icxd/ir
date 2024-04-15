@@ -92,16 +92,20 @@ typedef struct ir_type {
 
 typedef enum {
   _IR_VALUE_INTEGER,
+  _IR_VALUE_SYMBOL,
 } ir_value_tag;
 typedef struct {
   ir_value_tag tag;
   ir_type type;
   union {
     int64_t integer;
+    symbol_index symbol;
   };
 } ir_value;
 #define IR_VALUE_INTEGER(T, V)                                                 \
   ((ir_value){.tag = _IR_VALUE_INTEGER, .type = (T), .integer = (V)})
+#define IR_VALUE_SYMBOL(T, V)                                                  \
+  ((ir_value){.tag = _IR_VALUE_SYMBOL, .type = (T), .symbol = (V)})
 
 typedef enum {
 #define INST_RET(id, ...) _IR_INSTRUCTION_##id,
@@ -150,5 +154,6 @@ void ir_init(ir_context *);
 symbol_index ir_find_or_add_symbol(ir_context *, cstr);
 /// Returns SIZE_MAX if symbol wasn't found.
 symbol_index ir_find_symbol(ir_context *, cstr);
+symbol_index ir_add_symbol(ir_context *, cstr);
 
 #endif // IR_H

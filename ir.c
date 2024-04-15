@@ -101,3 +101,10 @@ symbol_index ir_find_symbol(ir_context *context, cstr symbol) {
   }
   return index;
 }
+
+symbol_index ir_add_symbol(ir_context *context, cstr symbol) {
+  if (ir_find_symbol(context, symbol) != SIZE_MAX)
+    return SIZE_MAX;
+  ir_slice_push(&context->symbol_table, symbol);
+  return context->symbol_table.size - 1;
+}
